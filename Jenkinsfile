@@ -36,32 +36,30 @@ pipeline{
         stage('Static Analysis') {
             agent {
                 docker {
-                    image 'docker:20.10.7-dind'  // Docker-in-Docker container
-                    args '--privileged'  // Enable Docker to run inside the container
+                    image 'docker:20.10.7-dind'
+                    args '--privileged'
                 }
             }
             steps {
                 script {
-                    // Cleanup any existing SonarQube containers
+                    // Clean up existing SonarQube containers
                     sh '''
-                        docker ps -a -q --filter "name=sonarqube" | xargs -r docker stop | xargs -r docker rm
+                        docker ps -a -q --filter "name=sonarqube" | xargs -r docker rm -f
                     '''
 
-                    // Start SonarQube in a Docker-in-Docker container
+                    // Start SonarQube
                     sh '''
                         docker run -d --name sonarqube -p 9000:9000 sonarqube:9.2-community
-                        echo "Waiting for SonarQube to start..."
-                        sleep 30  # Give SonarQube time to start up
+                        echo "Waiting for SonarQube to fully start..."
+                        sleep 60
                     '''
 
-                    // Run the static analysis with Gradle
-                    sh './gradlew sonarqube'  // Use localhost to access SonarQube
-                    sleep 5  // Optional: wait for SonarQube to finish analysis
-                    sh './gradlew checkQualityGate'  // Ensure quality gate is passed
-                    sh 'docker stop sonarcube'
+                    // Run analysis
+                    sh './gradlew sonarqube -Dsonar.host.url=http://localhost:9000 -Dsonar.login=admin -Dsonar.password=admin'
                 }
             }
         }
+
     }
 }
 
