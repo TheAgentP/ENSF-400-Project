@@ -12,16 +12,3 @@ services:
     volumes:
       - /workspaces/ensf400-project/jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-
-  sonarqube:
-    image: sonarqube:9.2-community
-    container_name: sonarqube
-    ports:
-      - "9000:9000"
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-    volumes:
-      - sonar_data:/opt/sonarqube/data
-
-volumes:
-  sonar_data:

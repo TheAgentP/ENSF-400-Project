@@ -34,32 +34,25 @@ pipeline{
 
         //Use a docker in docker container to run sonarcube (can't figure out)
         stage('Static Analysis') {
-            agent {
-                docker {
-                    image 'docker:20.10.7-dind'
-                    args '--privileged'
-                }
-            }
             steps {
                 script {
-                    // Clean up existing SonarQube containers
-                    sh '''
-                        docker ps -a -q --filter "name=sonarqube" | xargs -r docker rm -f
-                    '''
+                    // Start SonarQube server
+                    sh 'docker run -d --name sonarqube -e SONAR_FORCEAUTHENTICATION=false -p 9000:9000 --pull always sonarqube'
+                    // sh 'docker run -d --name sonarqube -p 9000:9000 -e SONAR_FORCEAUTHENTICATION=false sonarqube:9.2-community'
 
-                    // Start SonarQube
-                    sh '''
-                        docker run -d --name sonarqube -p 9000:9000 sonarqube:9.2-community
-                        echo "Waiting for SonarQube to fully start..."
-                        sleep 60
-                    '''
+                    sh 'echo "Waiting for SonarQube to start..." && sleep 30'
 
-                    // Run analysis
-                    sh './gradlew sonarqube -Dsonar.host.url=http://localhost:9000 -Dsonar.login=admin -Dsonar.password=admin'
+                    // Build the SonarQube analysis image
+                    sh 'docker build -t sonarqube-analysis -f Dockerfile.sonarqube-analysis .'
+
+                    // Run the analysis
+                    sh 'docker run --network="host" sonarqube-analysis'
+
+                    // Optional: Check quality gate
+                    // sh 'docker run --network="host" sonarqube-analysis ./gradlew checkQualityGate || true'
                 }
             }
         }
-
     }
 }
 
