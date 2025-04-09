@@ -1,5 +1,6 @@
 # Dockerfile.sonarqube
-FROM gradle:7.6.1-jdk11
+# FROM gradle:7.6.1-jdk11
+FROM gradle:7.6.1-jdk17
 
 # Set working directory
 WORKDIR /app
