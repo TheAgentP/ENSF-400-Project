@@ -36,30 +36,24 @@ pipeline{
         stage('Static Analysis') {
             agent {
                 docker {
-                    image 'docker:20.10.7-dind'
-                    args '--privileged'
+                    image 'gradle:7.6.1-jdk11' // ✅ This image includes both Gradle & Java
                 }
             }
             steps {
                 script {
-                    // Clean up existing SonarQube containers
+                    // Run SonarQube in the background (outside the container)
                     sh '''
-                        docker ps -a -q --filter "name=sonarqube" | xargs -r docker rm -f
-                    '''
-
-                    // Start SonarQube
-                    sh '''
+                        docker rm -f sonarqube || true
                         docker run -d --name sonarqube -p 9000:9000 sonarqube:9.2-community
-                        echo "Waiting for SonarQube to fully start..."
+                        echo "Waiting for SonarQube to start..."
                         sleep 60
                     '''
 
-                    // Run analysis
+                    // Run static analysis using Gradle and Java inside the container
                     sh './gradlew sonarqube -Dsonar.host.url=http://localhost:9000 -Dsonar.login=admin -Dsonar.password=admin'
                 }
             }
         }
-
     }
 }
 
