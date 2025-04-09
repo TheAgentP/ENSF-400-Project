@@ -54,6 +54,13 @@ pipeline{
             }
         }
     }
+    post {
+        always {
+            // Clean up unused Docker resources (optional)
+            sh 'docker system prune -f || true'
+            sh 'docker stop sonarqube && docker rm sonarqube || true'
+        }
+    }
 }
 
 // test4
