@@ -101,30 +101,30 @@ pipeline{
             }
         }
 
-        //Use a docker in docker container to run sonarcube (can't figure out)
+        // Use a docker in docker container to run sonarcube (figured it out)
         stage('Static Analysis') {
-            agent {
-                docker {
-                    image 'docker:20.10.7-dind'
-                    args '--privileged'
-                }
-            }
-            environment {
-                SONAR_HOST_URL = 'http://localhost:9000'
-                SONAR_TOKEN = credentials('your-sonar-token-id')  // Jenkins credentials
-            }
             steps {
                 script {
-                    sh '''
-                        docker run -d --name sonarqube -p 9000:9000 sonarqube:9.2-community
-                        echo "Waiting for SonarQube to be ready..."
-                        while ! curl -s http://localhost:9000/api/system/health | grep '"status":"UP"'; do sleep 5; done
-                    '''
-                    sh './gradlew sonarqube -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN'
-                    sh 'docker stop sonarqube'
-                    sh 'docker rm sonarqube'
+                    // Start SonarQube Server
+                    sh 'docker run -d --name sonarqube -p 9000:9000 --pull always sonarqube:9.2-community'
+                    sh 'echo "Waiting for SonarQube to start..." && sleep 60'
+                    sh 'curl -X POST "http://host.docker.internal:9000/api/users/change_password" -H "Content-Type: application/x-www-form-urlencoded" -d "login=admin&previousPassword=admin&password=password" -u admin:admin'
+
+                    // Build the SonarQube analysis image
+                    sh 'docker build -t sonarqube-analysis -f Dockerfile.sonarqube-analysis .'
+
+                    // Run the analysis
+                    sh 'docker run sonarqube-analysis'
                 }
             }
+        }
+    }
+    post {
+        always {
+            // Clean up unused Docker resources (optional)
+            sh 'docker system prune -f || true'
+            sh 'docker stop sonarqube && docker rm sonarqube || true'
+            SH 'docker rm sonarqube-analysis'
         }
     }
 }
