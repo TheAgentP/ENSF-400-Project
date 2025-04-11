@@ -26,7 +26,7 @@ pipeline{
             steps {
                 script {
                     // Use DockerHub credentials (the ID you gave it in Jenkins)
-                    withCredentials([usernamePassword(credentialsId: 'docker-pat', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: '$CREDENTIALS_ID', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         // Log in to DockerHub using the credentials
                         sh '''
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
@@ -90,7 +90,7 @@ pipeline{
         stage('Deploy Application') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-pat', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: '$CREDENTIALS_ID', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                             docker pull $DOCKER_USER/$IMAGE_NAME:$TAG
