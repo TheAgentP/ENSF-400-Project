@@ -121,7 +121,7 @@ pipeline{
     }
     post {
         always {
-            // Clean up unused Docker resources (optional)
+            // Clean up unused Docker resources (optional) /
             sh 'docker system prune -f || true'
             sh 'docker stop sonarqube && docker rm sonarqube || true'
             sh 'docker rm sonarqube-analysis'
