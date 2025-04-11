@@ -11,4 +11,4 @@ COPY . .
 RUN gradle --stop
 
 # Set the entrypoint to run SonarQube analysis
-CMD ["./gradlew", "sonarqube", "-Dsonar.host.url=http://host.docker.internal:9000"]
+CMD ["./gradlew", "sonarqube", "-Dsonar.host.url=http://172.18.0.1:9000"]
