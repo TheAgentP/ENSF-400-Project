@@ -107,7 +107,7 @@ pipeline{
                 script {
                     // Start SonarQube Server
                     sh 'docker run -d --name sonarqube -p 9000:9000 --pull always sonarqube:9.2-community'
-                    sh 'echo "Waiting for SonarQube to start..." && sleep 80'
+                    sh 'echo "Waiting for SonarQube to start..." && sleep 300'
                     sh 'curl -X POST "http://172.18.0.1:9000/api/users/change_password" -H "Content-Type: application/x-www-form-urlencoded" -d "login=admin&previousPassword=admin&password=password" -u admin:admin'
 
                     // Build the SonarQube analysis image
