@@ -124,7 +124,7 @@ pipeline{
             // Clean up unused Docker resources (optional)
             sh 'docker system prune -f || true'
             sh 'docker stop sonarqube && docker rm sonarqube || true'
-            SH 'docker rm sonarqube-analysis'
+            sh 'docker rm sonarqube-analysis'
         }
     }
 }
